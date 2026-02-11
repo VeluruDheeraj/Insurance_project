@@ -1,4 +1,3 @@
-
 def test_prediction(client):
     user = client.post(
         "/users",
