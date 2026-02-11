@@ -1,0 +1,22 @@
+[bandit]
+
+# Only scan application code
+targets = app
+
+# Exclude test directory and virtual environment
+exclude = tests,venv
+
+# Skip common safe warnings
+# B101 -> assert used (normal in pytest)
+# B311 -> random usage (safe for non-crypto use)
+skips = B101,B311
+
+# Fail only for medium or high severity issues
+severity = MEDIUM
+
+# Require medium confidence issues
+confidence = MEDIUM
+
+
+
+
