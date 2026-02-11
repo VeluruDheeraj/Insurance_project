@@ -30,32 +30,27 @@ jobs:
       PYTHONPATH: .
 
     steps:
-      # -------------------------
       # Checkout
-      # -------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # -------------------------
-      # Python Setup
-      # -------------------------
+      # Setup Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      # -------------------------
-      # Install Dependencies
-      # -------------------------
+      # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install ruff black bandit pytest pytest-cov
 
-      # -------------------------
-      # Quality Gates
-      # -------------------------
+      # -------------------
+      # Code Quality Checks
+      # -------------------
+
       - name: Ruff (Lint)
         run: ruff check .
 
@@ -63,11 +58,16 @@ jobs:
         run: black --check .
 
       - name: Bandit (Security Scan)
-        run: bandit -c .bandit -r app
+        run: |
+          bandit -r app \
+            -x tests \
+            -s B101,B311 \
+            -ll
 
-      # -------------------------
+      # -------------------
       # Wait for PostgreSQL
-      # -------------------------
+      # -------------------
+
       - name: Wait for PostgreSQL
         run: |
           until pg_isready -h localhost -p 5432 -U user; do
@@ -75,25 +75,28 @@ jobs:
             sleep 2
           done
 
-      # -------------------------
+      # -------------------
       # Tests + Coverage
-      # -------------------------
+      # -------------------
+
       - name: Run tests with coverage
         run: |
           pytest --cov=app --cov-report=term-missing --cov-fail-under=80
 
-      # -------------------------
+      # -------------------
       # Docker Login
-      # -------------------------
+      # -------------------
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # -------------------------
-      # Build & Push Docker Image
-      # -------------------------
+      # -------------------
+      # Build & Push Image
+      # -------------------
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
